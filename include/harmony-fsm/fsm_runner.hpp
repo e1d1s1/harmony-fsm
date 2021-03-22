@@ -84,7 +84,7 @@ class FiniteStateMachineRunner : public FiniteStateMachine< TEvent, TState >
   }
 
   /**
-   * @brief Construct a new Finite State Machine Runner object, single function for execution by default
+   * @brief Construct a new Finite State Machine Runner object, utilizes a map of states to functions
    *
    * @param fsm_table Valid transition table
    * @param init_state Initial state
