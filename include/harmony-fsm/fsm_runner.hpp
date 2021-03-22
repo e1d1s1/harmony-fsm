@@ -67,9 +67,9 @@ class FiniteStateMachineRunner : public FiniteStateMachine< TEvent, TState >
                             TResult                                              init_result,
                             double                                               frequency,
                             std::function< TResult( const TCommandParameter* ) > exec_fun           = nullptr,
-                            std::function< void( TResult& ) >                    completion_handler = nullptr,
+                            std::function< void( const TResult& ) >              completion_handler = nullptr,
                             std::function< void( const TCommandParameter* ) >    pre_exec_fun       = nullptr,
-                            std::function< void( const double ) >                timeout_handler    = nullptr,
+                            std::function< void( double ) >                      timeout_handler    = nullptr,
                             std::function< void( const std::exception& ) >       exception_handler  = nullptr )
     : FiniteStateMachine< TEvent, TState >( fsm_table, init_state )
     , rate_( BaseRate< TClock >( frequency ) )
@@ -101,9 +101,9 @@ class FiniteStateMachineRunner : public FiniteStateMachine< TEvent, TState >
                             TResult                                                                  init_result,
                             double                                                                   frequency,
                             std::map< TState, std::function< TResult( const TCommandParameter* ) > > exec_fun_map,
-                            std::function< void( TResult& ) >                                        completion_handler = nullptr,
+                            std::function< void( const TResult& ) >                                  completion_handler = nullptr,
                             std::function< void( const TCommandParameter* ) >                        pre_exec_fun       = nullptr,
-                            std::function< void( const double ) >                                    timeout_handler    = nullptr,
+                            std::function< void( double ) >                                          timeout_handler    = nullptr,
                             std::function< void( const std::exception& ) >                           exception_handler  = nullptr )
     : FiniteStateMachine< TEvent, TState >( fsm_table, init_state )
     , rate_( BaseRate< TClock >( frequency ) )
@@ -204,7 +204,7 @@ class FiniteStateMachineRunner : public FiniteStateMachine< TEvent, TState >
    * 
    * @param completion_handler Handler to process the results of execution functions
    */
-  void setCompletionHandler( std::function< void( TResult& ) > completion_handler )
+  void setCompletionHandler( std::function< void( const TResult& ) > completion_handler )
   {
     completion_handler_fun_ = completion_handler;
   }
@@ -302,9 +302,9 @@ class FiniteStateMachineRunner : public FiniteStateMachine< TEvent, TState >
 
  protected:
   std::function< TResult( const TCommandParameter* ) >                     execute_fun_            = nullptr;
-  std::function< void( TResult& ) >                                        completion_handler_fun_ = nullptr;
+  std::function< void( const TResult& ) >                                  completion_handler_fun_ = nullptr;
   std::function< void( const TCommandParameter* ) >                        pre_exec_fun_           = nullptr;
-  std::function< void( const double ) >                                    timeout_handler_fun_    = nullptr;
+  std::function< void( double ) >                                          timeout_handler_fun_    = nullptr;
   std::function< void( const std::exception& ) >                           exception_handler_fun_  = nullptr;
   std::map< TState, std::function< TResult( const TCommandParameter* ) > > execute_fun_map_;
 
