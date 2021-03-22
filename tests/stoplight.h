@@ -47,44 +47,56 @@ static const std::vector< fsm::EventTableEntry< EVENT, RUNSTATE > > STOPLIGHT_FS
 class StopLightOperation
 {
  public:
-  StopLightOperation(
-      fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMSteadyClock >&& runner )
+  StopLightOperation( bool byFuncMap,
+                      fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMSteadyClock >&& runner )
     : runner_( runner )
   {
     timers_.emplace( RUNSTATE::RED, fsm::SteadyTimer( 5 ) );
     timers_.emplace( RUNSTATE::YELLOW, fsm::SteadyTimer( 3 ) );
     timers_.emplace( RUNSTATE::GREEN, fsm::SteadyTimer( 5 ) );
 
-    runner_.setExecFunction( std::bind( &StopLightOperation::execute, this, std::placeholders::_1 ) );
+    if ( byFuncMap )
+    {
+      FunctionMap = { { RUNSTATE::GREEN, std::bind( &StopLightOperation::doGreen, this, std::placeholders::_1 ) },
+                      { RUNSTATE::YELLOW, std::bind( &StopLightOperation::doYellow, this, std::placeholders::_1 ) },
+                      { RUNSTATE::RED, std::bind( &StopLightOperation::doRed, this, std::placeholders::_1 ) },
+                      { RUNSTATE::EMERGENCY, std::bind( &StopLightOperation::doEmergency, this, std::placeholders::_1 ) } };
+
+      runner_.setExecFunctionMap( FunctionMap );
+    }
+    else
+    {
+      runner_.setExecFunction( std::bind( &StopLightOperation::execute, this, std::placeholders::_1 ) );
+    }
+
     runner_.setCompletionHandler( std::bind( &StopLightOperation::handleResult, this, std::placeholders::_1 ) );
 
     runner_.start();
   }
 
-  ~StopLightOperation() { runner_.stop(); }
+  ~StopLightOperation()
+  {
+    runner_.stop();
+  }
 
   RUNRESULT execute( const fsm::UnusedCommandParameter* param )
   {
     switch ( runner_.getCurrentState() )
     {
       case RUNSTATE::RED:
-        doRed();
-        return timers_[RUNSTATE::RED].isElapsed() ? RUNRESULT::CYCLE_COMPLETE : RUNRESULT::CYCLE_RUNNING;
+        return doRed();
         break;
 
       case RUNSTATE::YELLOW:
-        doYellow();
-        return timers_[RUNSTATE::YELLOW].isElapsed() ? RUNRESULT::CYCLE_COMPLETE : RUNRESULT::CYCLE_RUNNING;
+        return doYellow();
         break;
 
       case RUNSTATE::GREEN:
-        doGreen();
-        return timers_[RUNSTATE::YELLOW].isElapsed() ? RUNRESULT::CYCLE_COMPLETE : RUNRESULT::CYCLE_RUNNING;
+        return doGreen();
         break;
 
       case RUNSTATE::EMERGENCY:
-        doEmergency();
-        return ResetEmergency ? RUNRESULT::CYCLE_COMPLETE : RUNRESULT::CYCLE_RUNNING;
+        return doEmergency();
         break;
     }
 
@@ -96,36 +108,44 @@ class StopLightOperation
     runner_.stop();
   }
 
-  void doRed( const fsm::UnusedCommandParameter* param = nullptr )
+  RUNRESULT doRed( const fsm::UnusedCommandParameter* param = nullptr )
   {
     History.emplace_back( RUNSTATE::RED, fsm::FSMSteadyClock::toSec() );
     std::cout << "RED EXECUTE" << std::endl;
     if ( RedExecuted )
       RedExecuted();
+
+    return timers_[RUNSTATE::RED].isElapsed() ? RUNRESULT::CYCLE_COMPLETE : RUNRESULT::CYCLE_RUNNING;
   }
 
-  void doYellow( const fsm::UnusedCommandParameter* param = nullptr )
+  RUNRESULT doYellow( const fsm::UnusedCommandParameter* param = nullptr )
   {
     History.emplace_back( RUNSTATE::YELLOW, fsm::FSMSteadyClock::toSec() );
     std::cout << "YELLOW EXECUTE" << std::endl;
     if ( YellowExecuted )
       YellowExecuted();
+
+    return timers_[RUNSTATE::YELLOW].isElapsed() ? RUNRESULT::CYCLE_COMPLETE : RUNRESULT::CYCLE_RUNNING;
   }
 
-  void doGreen( const fsm::UnusedCommandParameter* param = nullptr )
+  RUNRESULT doGreen( const fsm::UnusedCommandParameter* param = nullptr )
   {
     History.emplace_back( RUNSTATE::GREEN, fsm::FSMSteadyClock::toSec() );
     std::cout << "GREEN EXECUTE" << std::endl;
     if ( GreenExecuted )
       GreenExecuted();
+
+    return timers_[RUNSTATE::YELLOW].isElapsed() ? RUNRESULT::CYCLE_COMPLETE : RUNRESULT::CYCLE_RUNNING;
   }
 
-  void doEmergency( const fsm::UnusedCommandParameter* param = nullptr )
+  RUNRESULT doEmergency( const fsm::UnusedCommandParameter* param = nullptr )
   {
     History.emplace_back( RUNSTATE::EMERGENCY, fsm::FSMSteadyClock::toSec() );
     std::cout << "EMERGENCY EXECUTE" << std::endl;
     if ( EmergencyExecuted )
       EmergencyExecuted();
+
+    return ResetEmergency ? RUNRESULT::CYCLE_COMPLETE : RUNRESULT::CYCLE_RUNNING;
   }
 
   void resetTimers()
@@ -144,9 +164,9 @@ class StopLightOperation
     else if ( result == RUNRESULT::CYCLE_COMPLETE )
     {
       std::cout << "STATE completed" << std::endl;
-      if (StateCompleted)
+      if ( StateCompleted )
       {
-        StateCompleted(runner_.getCurrentState());
+        StateCompleted( runner_.getCurrentState() );
         CompletionHistory.emplace_back( runner_.getCurrentState(), fsm::FSMSteadyClock::toSec() );
       }
       auto evt = EVENT::DO_NEXT_CYCLE;
@@ -167,19 +187,20 @@ class StopLightOperation
     }
   }
 
-  bool ResetEmergency   = false;
+  bool ResetEmergency = false;
 
-  std::function< void( void ) > RedExecuted    = nullptr;
-  std::function< void( void ) > YellowExecuted = nullptr;
-  std::function< void( void ) > GreenExecuted  = nullptr;
-  std::function< void( void ) > EmergencyExecuted  = nullptr;
-  std::function< void( RUNSTATE ) > StateCompleted = nullptr;
+  std::function< void( void ) >     RedExecuted       = nullptr;
+  std::function< void( void ) >     YellowExecuted    = nullptr;
+  std::function< void( void ) >     GreenExecuted     = nullptr;
+  std::function< void( void ) >     EmergencyExecuted = nullptr;
+  std::function< void( RUNSTATE ) > StateCompleted    = nullptr;
 
-  std::vector< std::pair< RUNSTATE, double > >                                                                   History;
-  std::vector< std::pair< RUNSTATE, double > >                                                                   CompletionHistory;
+  std::vector< std::pair< RUNSTATE, double > > History;
+  std::vector< std::pair< RUNSTATE, double > > CompletionHistory;
+
+  std::map< RUNSTATE, std::function< RUNRESULT( const fsm::UnusedCommandParameter* ) > > FunctionMap;
 
  private:
   std::map< RUNSTATE, fsm::SteadyTimer >                                                                         timers_;
   fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMSteadyClock >& runner_;
-  
 };
