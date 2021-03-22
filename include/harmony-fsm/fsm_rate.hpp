@@ -120,6 +120,8 @@ using SystemTimer = BaseTimer< FSMSystemClock >;
 
 #ifdef USE_ROS_TIME
 using ROSRate = BaseRate< FSMROSClock >;
+
+using ROSTimer = BaseTimer< FSMROSClock >;
 #endif
 
 }

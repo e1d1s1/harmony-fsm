@@ -33,3 +33,5 @@
 
 build
 .vscode
+.docker_bash_history
+.docker_git_config

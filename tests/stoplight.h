@@ -48,7 +48,11 @@ class StopLightOperation
 {
  public:
   StopLightOperation( bool byFuncMap,
+#ifdef USE_ROS_TIME
+                      fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMROSClock >&& runner )
+#else
                       fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMSteadyClock >&& runner )
+#endif
     : runner_( runner )
   {
     timers_.emplace( RUNSTATE::RED, fsm::SteadyTimer( 5 ) );
@@ -202,5 +206,9 @@ class StopLightOperation
 
  private:
   std::map< RUNSTATE, fsm::SteadyTimer >                                                                         timers_;
+#ifdef USE_ROS_TIME
+  fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMROSClock >& runner_;
+#else
   fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMSteadyClock >& runner_;
+#endif
 };

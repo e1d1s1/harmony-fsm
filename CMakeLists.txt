@@ -24,6 +24,20 @@ set(HEADERS
 target_include_directories( harmony-fsm INTERFACE include)
 
 option(
+  ROS_TIME
+  "Use ROS Time"
+  FALSE
+)
+
+if(ROS_TIME)
+  add_definitions("-DUSE_ROS_TIME")
+
+  find_package( roscpp REQUIRED )
+
+  include_directories(${roscpp_INCLUDE_DIRS})
+endif()
+
+option(
   BUILD_TESTS
   "Build tests"
   ${HARMONY_FSM_MASTER_PROJECT}

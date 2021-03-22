@@ -4,4 +4,9 @@ target_link_libraries( simpleTest harmony-fsm )
 
 add_executable( runnerTest runner.cpp )
 add_test(runnerTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/runnerTest )
-target_link_libraries( runnerTest harmony-fsm pthread )
+
+if(ROS_TIME)
+  target_link_libraries( runnerTest harmony-fsm pthread ${roscpp_LIBRARIES} )
+else()
+  target_link_libraries( runnerTest harmony-fsm pthread )
+endif()

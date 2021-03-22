@@ -1,4 +1,4 @@
-#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_RUNNER
 #include <chrono>
 #include <harmony-fsm/finite_state_machine.hpp>
 
@@ -23,6 +23,23 @@ TEST_CASE( "rate test" )
   REQUIRE( cnt == 10 );
 }
 
+#ifdef USE_ROS_TIME
+TEST_CASE( "ROS rate test" )
+{
+  fsm::ROSRate rate( 10 );
+
+  auto start = chrono::steady_clock::now();
+  int  cnt   = 0;
+  while ( chrono::steady_clock::now() - start < dseconds( 1.00 ) )
+  {
+    rate.sleep();
+    cnt++;
+  }
+
+  REQUIRE( cnt == 10 );
+}
+#endif
+
 void run_test( bool byFuncMap )
 {
   bool caughtException     = false;
@@ -36,7 +53,11 @@ void run_test( bool byFuncMap )
   bool timedOut            = false;
   int  preExecCount        = 0;
 
+#ifdef USE_ROS_TIME
+  fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMROSClock > runner(
+#else
   fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMSteadyClock > runner(
+#endif
       STOPLIGHT_FSM_TABLE, RUNSTATE::RED, RUNRESULT::CYCLE_RUNNING, 10 );
 
   auto start = chrono::steady_clock::now();
@@ -123,4 +144,13 @@ TEST_CASE( "runner_test_single_exec" )
 TEST_CASE( "runner_test_map_exec" )
 {
   run_test( true );
+}
+
+int main (int argc, char * argv[]) 
+{
+#ifdef USE_ROS_TIME
+  ros::init(argc, argv, "runner");
+  ros::NodeHandle nh;
+#endif
+  return Catch::Session().run( argc, argv );
 }

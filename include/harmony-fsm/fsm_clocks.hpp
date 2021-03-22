@@ -55,7 +55,7 @@ class FSMROSBaseClock
 public:
   static double toSec()
   {
-    return TROS::now().toSec());
+    return TROS::now().toSec();
   }
 };
 

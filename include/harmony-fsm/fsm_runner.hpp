@@ -34,6 +34,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <map>
 
 #include "fsm_rate.hpp"
 
