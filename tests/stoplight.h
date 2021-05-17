@@ -8,14 +8,14 @@
 #include <string>
 #include <vector>
 
-enum class EVENT
+enum class EVENT : unsigned
 {
   DO_NEXT_CYCLE,
   EMERGENCY_DECLARED,
   EMERGENCY_ENDED
 };
 
-enum class RUNSTATE
+enum class RUNSTATE : unsigned
 {
   GREEN,
   YELLOW,
@@ -43,6 +43,23 @@ static const std::vector< fsm::EventTableEntry< EVENT, RUNSTATE > > STOPLIGHT_FS
 
     // back to red when emergency is done
     { EVENT::EMERGENCY_ENDED, RUNSTATE::EMERGENCY, RUNSTATE::RED } };
+
+// map format
+static const std::map < RUNSTATE, std::map < EVENT, RUNSTATE > > STOPLIGHT_FSM_MAP = {
+    { RUNSTATE::GREEN, { 
+      { EVENT::DO_NEXT_CYCLE, RUNSTATE::YELLOW },
+      { EVENT::EMERGENCY_DECLARED, RUNSTATE::EMERGENCY } } },
+
+    { RUNSTATE::YELLOW, { 
+      { EVENT::DO_NEXT_CYCLE, RUNSTATE::RED },
+      { EVENT::EMERGENCY_DECLARED, RUNSTATE::EMERGENCY } } },
+
+    { RUNSTATE::RED, { 
+      { EVENT::DO_NEXT_CYCLE, RUNSTATE::GREEN },
+      { EVENT::EMERGENCY_DECLARED, RUNSTATE::EMERGENCY } } },
+    
+    { RUNSTATE::EMERGENCY, { 
+      { EVENT::EMERGENCY_ENDED, RUNSTATE::RED } } } };
 
 class StopLightOperation
 {

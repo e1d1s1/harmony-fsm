@@ -19,6 +19,7 @@ set(HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/harmony-fsm/fsm_clocks.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/harmony-fsm/fsm_rate.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/harmony-fsm/fsm_runner.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/harmony-fsm/config_parser.hpp
 )
 
 target_include_directories( harmony-fsm INTERFACE include)

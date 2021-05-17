@@ -10,3 +10,5 @@ if(ROS_TIME)
 else()
   target_link_libraries( runnerTest harmony-fsm pthread )
 endif()
+
+file(COPY rules.csv DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

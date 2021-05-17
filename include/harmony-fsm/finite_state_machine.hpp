@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include "event_table_entry.hpp"
@@ -50,8 +51,6 @@ template < typename TEvent, typename TState >
 class FiniteStateMachine
 {
  public:
-  FiniteStateMachine( const FiniteStateMachine& other ) = default;
-
   /**
    * @brief Construct a new Finite State Machine object.
    * 
@@ -60,9 +59,28 @@ class FiniteStateMachine
    */
   FiniteStateMachine( std::vector< EventTableEntry< TEvent, TState > > fsm_table, TState init_state )
     : current_state_( init_state )
-    , fsm_table_( fsm_table )
   {
+    // an optimization for large event table lookups, map by state and event
+    for ( const auto& entry : fsm_table )
+    {
+      fsm_state_vs_event_mapper_[entry.Current][entry.Trigger] = entry.Result;
+    }
   }
+
+  /**
+   * @brief Construct a new Finite State Machine object directly from map, with move semantics
+   * 
+   * @param fsm_state_vs_event_mapper 
+   * @param init_state 
+   */
+  FiniteStateMachine( std::map< TState, std::map< TEvent, TState > > fsm_state_vs_event_mapper, TState init_state )
+  : current_state_( init_state )
+  , fsm_state_vs_event_mapper_( std::move( fsm_state_vs_event_mapper ) )
+  {}
+  
+
+  FiniteStateMachine( const FiniteStateMachine& other ) = default;
+
   /**
    * @brief Execute a state machine transition
    * @param trigger
@@ -82,23 +100,22 @@ class FiniteStateMachine
 
   /**
    * @brief Checks whether the current transition event could yield a new state
-   * 
-   * @param trigger 
+   *
+   * @param trigger
    * @param next_state The next state given this transition
-   * @return true 
-   * @return false 
+   * @return true
+   * @return false
    */
-  virtual bool isValid( const TEvent& trigger, TState& next_state )
+  virtual bool isValid( const TEvent& trigger, TState& next_state ) const
   {
-    for ( const auto& entry : fsm_table_ )
+    const auto state_mapping = fsm_state_vs_event_mapper_.find( current_state_ );
+    if ( state_mapping != end( fsm_state_vs_event_mapper_ ) )
     {
-      if ( entry.Current == current_state_ )
+      const auto event_mapping = state_mapping->second.find( trigger );
+      if ( event_mapping != end( state_mapping->second ) )
       {
-        if ( entry.Trigger == trigger )
-        {
-          next_state = entry.Result;
-          return true;
-        }
+        next_state = event_mapping->second;
+        return true;
       }
     }
 
@@ -115,8 +132,9 @@ class FiniteStateMachine
   }
 
  protected:
-  TState                                                  current_state_;
-  const std::vector< EventTableEntry< TEvent, TState > >  fsm_table_;
+  TState                                         current_state_;
+  // map of states and their triggers/resultant states
+  std::map< TState, std::map< TEvent, TState > > fsm_state_vs_event_mapper_;
 };
 
 }  // namespace fsm
