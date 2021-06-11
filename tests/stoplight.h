@@ -1,7 +1,7 @@
 #include <functional>
-#include <harmony-fsm/finite_state_machine.hpp>
-#include <harmony-fsm/fsm_rate.hpp>
-#include <harmony-fsm/fsm_runner.hpp>
+#include <harmony_fsm/finite_state_machine.hpp>
+#include <harmony_fsm/fsm_rate.hpp>
+#include <harmony_fsm/fsm_runner.hpp>
 #include <iostream>
 #include <map>
 #include <stdexcept>

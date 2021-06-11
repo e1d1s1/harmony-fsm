@@ -1,0 +1,24 @@
+<package format="2">
+  <name>harmony_fsm</name>
+  <version>1.0.0</version>
+  <description>
+  This package exposes harmony_fsm to ROS
+  </description>
+  <maintainer email="e1d1s1@hotmail.com">Eric D. Schmidt</maintainer>
+  <license>BSD</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+
+  <build_depend>message_generation</build_depend>
+
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>rospy</exec_depend>
+
+  <test_depend>python-mock</test_depend>
+
+  <doc_depend>doxygen</doc_depend>
+  
+</package>

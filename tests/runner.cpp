@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_RUNNER
 #include <chrono>
-#include <harmony-fsm/finite_state_machine.hpp>
+#include <harmony_fsm/finite_state_machine.hpp>
 
 #include "catch.hpp"
 #include "stoplight.h"
@@ -54,6 +54,7 @@ void run_test( bool byFuncMap )
   int  preExecCount        = 0;
 
 #ifdef USE_ROS_TIME
+  cout << "ROS time enabled" << endl;
   fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMROSClock > runner(
 #else
   fsm::FiniteStateMachineRunner< EVENT, RUNSTATE, fsm::UnusedCommandParameter, RUNRESULT, fsm::FSMSteadyClock > runner(

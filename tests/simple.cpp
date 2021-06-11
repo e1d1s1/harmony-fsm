@@ -1,8 +1,8 @@
 #define CATCH_CONFIG_MAIN
 #include <chrono>
 
-#include <harmony-fsm/finite_state_machine.hpp>
-#include <harmony-fsm/config_parser.hpp>
+#include <harmony_fsm/finite_state_machine.hpp>
+#include <harmony_fsm/config_parser.hpp>
 
 #include "catch.hpp"
 #include "stoplight.h"
