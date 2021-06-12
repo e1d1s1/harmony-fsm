@@ -44,6 +44,7 @@
 #include <map>
 
 #include "fsm_rate.hpp"
+#include "finite_state_machine.hpp"
 
 namespace fsm
 {
