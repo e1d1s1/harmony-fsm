@@ -16,9 +16,5 @@
 
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>rospy</exec_depend>
-
-  <test_depend>python-mock</test_depend>
-
-  <doc_depend>doxygen</doc_depend>
   
 </package>
